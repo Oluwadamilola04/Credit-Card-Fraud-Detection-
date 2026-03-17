@@ -1,0 +1,38 @@
+# Python bytecode / caches
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# Common tooling caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Local config / secrets
+.env
+.env.*
+
+# Runtime logs and generated outputs
+logs/
+artifacts/
+*.log
+
+# Dataset (large); keep local by default
+creditcard.csv
+
+# Model artifacts (often large; avoid committing to public repos by default)
+*.pkl
+*.joblib
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
