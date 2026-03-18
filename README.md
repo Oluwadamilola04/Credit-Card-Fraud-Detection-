@@ -41,7 +41,7 @@ Fraud detection is a highly imbalanced classification problem, so "accuracy" is 
 - `logs/`: runtime logs and JSONL monitoring logs
 - `artifacts/`: generated monitoring/explainability outputs
 
-## Quickstart (Start To Finish)
+## Quickstart
 
 ### 1) Environment Setup
 
@@ -192,6 +192,5 @@ python scripts/explain.py --model fraud_detection_pipeline.pkl --csv creditcard.
 
 ## Limitations And Notes
 
-- This is a demo-style deployment intended for local use and learning.
 - For production you would typically add: authentication, rate limiting, structured logs/metrics, and CI/CD.
 - Threshold selection should be driven by business cost tradeoffs (false positives vs missed fraud), not by a default.
