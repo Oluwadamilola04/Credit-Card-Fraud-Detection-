@@ -65,6 +65,10 @@ $env:API_URL="http://127.0.0.1:8000"
 streamlit run ui/app.py
 ```
 
+### Streamlit Community Cloud note
+
+Streamlit Community Cloud runs the Streamlit interface, but it does not automatically start the FastAPI service in `api/main.py`. For a hosted deployment, run the API separately on a service that supports a persistent web process, then set the Streamlit app's `API_URL` secret to that public API URL. The local two-process setup above is still required for local development.
+
 ## Monitoring
 
 ### Enable richer drift monitoring

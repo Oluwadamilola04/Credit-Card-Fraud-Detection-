@@ -1,196 +1,232 @@
-# Fraud Detection (End To End: Train, Serve, Monitor)
+# Fraud Detection Demo
 
-This project takes a fraud-detection model built in a notebook and turns it into a small, runnable system you can demo and deploy locally. In my workflow, I start with the notebook, save a single artifact, then wrap it with an API, a UI, and basic monitoring.
+This project is a practical machine-learning application that shows how a fraud model can move from a Jupyter notebook to a real, testable service.
 
-- Train and evaluate a model on `creditcard.csv`
-- Save a deployable artifact (`.pkl`)
-- Serve predictions through a FastAPI backend
-- Provide a Streamlit UI for manual testing and batch scoring
-- Log predictions and feedback labels for monitoring
-- Run basic drift checks and export feature importance for sanity checks
+For a recruiter, hiring manager, or non-technical reviewer, the simplest way to understand it is this:
 
-## What Problem This Solves
+- it analyzes transaction data,
+- tries to estimate how likely a payment is to be fraudulent,
+- exposes that prediction through an API,
+- lets a user test it in a simple dashboard,
+- and keeps logs so performance can be monitored over time.
 
-Fraud detection is a highly imbalanced classification problem, so "accuracy" is usually misleading. What you typically want is:
+This is a strong example of end-to-end ML work: data preparation, model training, deployment, monitoring, and explainability.
 
-- a **risk score** (fraud probability) per transaction
-- a **decision policy** (threshold) you can tune to match operational goals (precision/recall tradeoff)
-- a **serving layer** so the model works outside Jupyter
-- a **monitoring loop** so you can detect drift and decide when to retrain
+## Problem statement
 
-## Repo Layout
+Online payment fraud is difficult to catch consistently because fraudulent transactions are rare, patterns change over time, and blocking a legitimate customer can be nearly as damaging as missing a fraudulent payment. A useful system must therefore rank transaction risk, support human review, and remain observable after deployment.
 
-- `fraud.ipynb`: EDA + preprocessing + training + evaluation (produces the saved artifact)
-- `creditcard.csv`: dataset used for training and baseline generation
-- `fraud_detection_pipeline.pkl`: preferred deployable artifact (loaded by the API by default)
-- `best_fraud_model.pkl`: fallback artifact if the pipeline is not present
-- `api/`: FastAPI service (serves predictions)
-  - `api/main.py`: endpoints (`/predict`, `/metadata`, `/health`, `/feedback`)
-  - `api/schemas.py`: request/response schema (API contract)
-  - `api/model.py`: model loading + prediction helpers
-  - `api/logging_utils.py`: JSONL logging helpers
-- `ui/app.py`: the Streamlit UI that calls the API
-- `scripts/`: one-off utilities for monitoring/explainability outputs
-  - `scripts/export_baseline_from_csv.py`: generates `artifacts/baseline.json`
-  - `scripts/explain.py`: exports `artifacts/feature_importance.csv`
-- `monitoring/`:
-  - `monitoring/baseline.py`: baseline builder used by the scripts
-  - `monitoring/drift.py`: PSI-based drift report
-- `DEPLOYMENT.md`: commands and a runbook-style playbook
-- `MODEL_CARD.md`: fill-in model documentation (metrics, threshold rationale, limitations)
-- `logs/`: runtime logs and JSONL monitoring logs
-- `artifacts/`: generated monitoring/explainability outputs
+## How this project solves it
 
-## Quickstart
+This project trains a classification model on historical transaction patterns and returns a fraud probability for each new transaction. A configurable threshold turns that probability into a review signal, while the FastAPI service, Streamlit dashboard, prediction logs, drift checks, and feature-importance report demonstrate how the model can be used and monitored as part of a broader workflow.
 
-### 1) Environment Setup
+## Why this project matters
 
-Use a Python environment that has (at minimum): `pandas`, `numpy`, `scikit-learn`, `xgboost`, `fastapi`, `uvicorn`, `streamlit`, `requests`. (I tend to use conda for this kind of project, but any environment manager works.)
+Fraud detection is a classic business problem because the cost of mistakes is high:
 
-If you use conda, this is a reasonable starting point:
+- a false positive may block a legitimate customer,
+- a false negative may allow real fraud to slip through,
+- and the dataset is often highly imbalanced, which makes ordinary accuracy misleading.
+
+That is why this project focuses on:
+
+- fraud probability, not just a label,
+- business-friendly thresholding,
+- monitoring for drift,
+- and explainability for trust and review.
+
+## What the project does
+
+This repo contains a mini machine-learning workflow that:
+
+1. loads transaction data from the credit card dataset,
+2. trains a classification model,
+3. saves the trained model as a reusable artifact,
+4. serves predictions with FastAPI,
+5. provides a Streamlit interface for manual and batch testing,
+6. logs predictions and feedback for monitoring,
+7. generates a drift report and feature importance view.
+
+## Project architecture
+
+The system is intentionally simple and modular:
+
+```mermaid
+flowchart LR
+    A[creditcard.csv] --> B[fraud.ipynb]
+    B --> C[Serialized model artifact]
+    C --> D[FastAPI service]
+    D --> E[POST /predict]
+    E --> F[Streamlit demo app]
+    D --> G[logs/predictions.jsonl]
+    G --> H[Monitoring and drift checks]
+    D --> I[Feedback logging]
+    I --> J[Retraining decisions]
+```
+
+- `fraud.ipynb` — training, evaluation, and artifact creation
+- `creditcard.csv` — transactional data used for model development
+- `fraud_detection_pipeline.pkl` — production-style model artifact
+- `api/` — API layer that accepts transaction data and returns predictions
+- `ui/` — Streamlit app for demoing the model
+- `monitoring/` — drift detection and model health checks
+- `scripts/` — utilities for baseline generation and explainability output
+- `artifacts/` — generated reports and summary files
+- `logs/` — prediction and feedback logs
+
+## How it works in plain English
+
+The project follows a common ML lifecycle:
+
+- Train the model on historical transaction data.
+- Save the model artifact so it can be reused outside the notebook.
+- Create a service that accepts a transaction and returns a fraud probability.
+- Make a threshold decision such as “flag if probability > 0.5”.
+- Log prediction history so it can be checked later for drift or unexpected behavior.
+- Use feature importance and monitoring reports to understand if the model is still acting normally.
+
+## Tech stack
+
+This project uses:
+
+- Python
+- Pandas and NumPy
+- scikit-learn
+- XGBoost
+- FastAPI
+- Streamlit
+- JSONL logging
+- basic monitoring and diagnostics
+
+## Repo layout
+
+- `README.md` — project overview and setup instructions
+- `DEPLOYMENT.md` — operation and deployment runbook
+- `MODEL_CARD.md` — model documentation and metrics summary
+- `fraud.ipynb` — notebook used for training and experimentation
+- `creditcard.csv` — dataset used in the project
+- `api/main.py` — FastAPI application
+- `api/model.py` — model loading and prediction logic
+- `api/schemas.py` — request and response validation
+- `ui/app.py` — user-facing dashboard
+- `monitoring/drift.py` — drift detection logic
+- `scripts/` — export and explainability helpers
+
+## Quick start
+
+### 1) Create and activate an environment
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+```
+
+On Windows PowerShell:
 
 ```powershell
-# Example only: create and activate an environment
-conda create -n fraud-detect python=3.12 -y
-conda activate fraud-detect
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+```
+
+### 2) Install dependencies
+
+```bash
 pip install -r requirements.txt
 ```
 
-Note: `requirements.txt` in this repo was generated from an existing environment and may include platform-specific entries. If installation fails, install the key packages listed above instead.
+### 3) Train the model
 
-### 2) Train The Model (Notebook)
+Open and run `fraud.ipynb` to generate the saved model artifact.
 
-Open and run:
+Typical outputs include:
 
-- `fraud.ipynb`
+- `fraud_detection_pipeline.pkl`
+- `best_fraud_model.pkl`
 
-That notebook is responsible for EDA, preprocessing, training, evaluation, and saving a model artifact.
+### 4) Start the API
 
-Expected outputs in the project root:
-
-- `fraud_detection_pipeline.pkl` (preferred)
-- `best_fraud_model.pkl` (fallback)
-
-### 3) Start The API (FastAPI)
-
-Start the backend with:
-
-```powershell
+```bash
 uvicorn api.main:app --host 127.0.0.1 --port 8000 --reload
 ```
 
-Verify it is healthy:
+Check the health endpoint:
 
-```powershell
-Invoke-RestMethod http://127.0.0.1:8000/health
+```bash
+curl http://127.0.0.1:8000/health
 ```
 
-Check what it loaded (artifact path, threshold, expected features):
+### 5) Run the Streamlit app
 
-```powershell
-Invoke-RestMethod http://127.0.0.1:8000/metadata
-```
-
-### 4) Start The UI (Streamlit)
-
-Point the UI at the API and run it:
-
-```powershell
+```bash
 $env:API_URL="http://127.0.0.1:8000"
 streamlit run ui/app.py
 ```
 
-Open the printed URL (typically `http://127.0.0.1:8501`) and test:
+Then open the local URL shown in the terminal, usually http://localhost:8501.
 
-- a single prediction (paste JSON)
-- a batch prediction (upload CSV)
+## Example API behavior
 
-## API Contract (High Level)
+The API accepts either a single transaction or a batch of transactions and returns a fraud probability.
 
-### `POST /predict`
+Example response fields include:
 
-`/predict` accepts either:
+- `fraud_probability`
+- `is_fraud`
+- `request_id`
+- `threshold`
 
-- a single transaction in `transaction`
-- a batch in `transactions`
+A real system would use these values for fraud review workflows, risk scoring, or automated actioning.
 
-Each transaction is a JSON object mapping `feature_name -> numeric_value`.
+## Monitoring and explainability
 
-PowerShell example (single):
+This repo also includes:
 
-```powershell
-$tx = @{ V1 = 0.0; V2 = 0.0; V3 = 0.0; V4 = 0.0; V5 = 0.0; V6 = 0.0; V7 = 0.0; V8 = 0.0; V9 = 0.0; V10 = 0.0;
-         V11 = 0.0; V12 = 0.0; V13 = 0.0; V14 = 0.0; V15 = 0.0; V16 = 0.0; V17 = 0.0; V18 = 0.0; V19 = 0.0; V20 = 0.0;
-         V21 = 0.0; V22 = 0.0; V23 = 0.0; V24 = 0.0; V25 = 0.0; V26 = 0.0; V27 = 0.0; V28 = 0.0; Amount = 0.0 }
-$body = @{ transaction = $tx } | ConvertTo-Json -Depth 6
-Invoke-RestMethod -Method Post -Uri http://127.0.0.1:8000/predict -ContentType "application/json" -Body $body
-```
+- prediction logging in `logs/predictions.jsonl`
+- feedback logging in `logs/feedback.jsonl`
+- baseline generation for drift monitoring
+- feature importance export for interpretability
 
-The response includes:
+These are useful because no model should be treated as static forever. In real usage, you monitor the model for drift, review false positives, and retrain when needed.
 
-- `fraud_probability` (0..1)
-- `is_fraud` (thresholded decision)
-- `request_id` (useful for debugging and later feedback)
+## Results and outputs
 
-### `POST /feedback`
+The notebook evaluation selected a tuned XGBoost classifier as the best-performing model in the experiments. At the tuned operating point, the reported results were approximately:
 
-When you later learn the true outcome (ground truth label), send it to `/feedback`. This appends to `logs/feedback.jsonl`.
+- ROC-AUC: `0.9758`
+- Precision: `0.9518`
+- Recall: `0.8061`
+- F1-score: `0.8729`
 
-```powershell
-$body = @{ items = @(@{ request_id = "YOUR_REQUEST_ID"; label = 1; metadata = @{ source = "manual_review" } }) } | ConvertTo-Json -Depth 6
-Invoke-RestMethod -Method Post -Uri http://127.0.0.1:8000/feedback -ContentType "application/json" -Body $body
-```
+The project produces more than a trained model. It includes:
 
-## Configuration
+- a serialized model artifact that can be loaded by the API,
+- a FastAPI service for single and batch transaction scoring,
+- a Streamlit dashboard for manual testing and plain-English risk interpretation,
+- JSONL prediction and feedback logs,
+- a baseline and drift report for monitoring,
+- a feature-importance export for model inspection.
 
-Environment variables supported by the API:
+The default API threshold is `0.5`, while the notebook explored a threshold near `0.9742` for the best F1 trade-off. These values are starting points for review workflows, not universal production settings.
 
-- `MODEL_PATH`: path to the `.pkl` artifact (default: `fraud_detection_pipeline.pkl`, fallback: `best_fraud_model.pkl`)
-- `FRAUD_THRESHOLD`: decision threshold (default: `0.5`)
-- `PREDICTIONS_LOG`: predictions JSONL path (default: `logs/predictions.jsonl`)
-- `FEEDBACK_LOG`: feedback JSONL path (default: `logs/feedback.jsonl`)
-- `LOG_FEATURES`: if truthy, logs raw features instead of feature hashes (default: off)
+## Current limitations
 
-## Monitoring And Drift
+This is a strong prototype, but it is not yet a production-grade fraud system.
 
-### 1) Generate Baseline
+In a real deployment you would still want to add:
 
-To monitor drift, first create a baseline snapshot from the training CSV (writes `artifacts/baseline.json`). In my workflow I do this once per model version (right after training).
+- authentication and authorization,
+- input validation and rate limiting,
+- alerting and dashboards,
+- retraining pipelines,
+- database-backed storage,
+- stronger governance and model review processes.
 
-```powershell
-python scripts/export_baseline_from_csv.py --csv creditcard.csv --out artifacts/baseline.json --model fraud_detection_pipeline.pkl
-```
+## Possible next steps
 
-### 2) Generate Drift Report
+Potential extensions include:
 
-After the API has produced predictions in `logs/predictions.jsonl`, generate a drift report:
-
-```powershell
-python monitoring/drift.py --baseline artifacts/baseline.json --predictions-log logs/predictions.jsonl --out artifacts/drift_report.json
-```
-
-Notes:
-
-- Drift is more meaningful after you have a reasonable number of predictions (not just a handful).
-- If `LOG_FEATURES` is off (default), the drift tool can still report score drift if the baseline includes stored scores.
-
-## Explainability (Sanity Checks)
-
-Export feature importance:
-
-```powershell
-python scripts/explain.py --model fraud_detection_pipeline.pkl --csv creditcard.csv --out artifacts/feature_importance.csv
-```
-
-## Suggested Demo (GitHub Screenshots)
-
-- `http://127.0.0.1:8000/docs` (auto-generated API docs)
-- the Streamlit UI making a prediction
-- `artifacts/feature_importance.csv` (top features)
-- `artifacts/drift_report.json` (monitoring output)
-- `MODEL_CARD.md` filled with final metrics and threshold rationale
-
-## Limitations And Notes
-
-- For production you would typically add: authentication, rate limiting, structured logs/metrics, and CI/CD.
-- Threshold selection should be driven by business cost tradeoffs (false positives vs missed fraud), not by a default.
+- pin the model training environment to avoid version drift,
+- fill the model card with final metrics and deployment notes,
+- add a cloud or Docker deployment path,
+- add richer analytics for false positives and review thresholds,
+- add a project screenshot or demo GIF for GitHub presentation.
