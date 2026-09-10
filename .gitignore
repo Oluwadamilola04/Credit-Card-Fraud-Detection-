@@ -30,7 +30,6 @@ artifacts/
 creditcard.csv
 
 # Model artifacts (often large; avoid committing to public repos by default)
-*.pkl
 *.joblib
 
 # OS/editor noise
