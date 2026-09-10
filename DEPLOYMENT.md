@@ -69,6 +69,26 @@ streamlit run ui/app.py
 
 Streamlit Community Cloud runs the Streamlit interface, but it does not automatically start the FastAPI service in `api/main.py`. For a hosted deployment, run the API separately on a service that supports a persistent web process, then set the Streamlit app's `API_URL` secret to that public API URL. The local two-process setup above is still required for local development.
 
+#### Recommended hosted setup
+
+Use two services:
+
+1. **API service**: deploy this repository to a Python web-service host.
+   - Build/install command: `pip install -r requirements.txt`
+   - Start command: `uvicorn api.main:app --host 0.0.0.0 --port $PORT`
+   - Make sure `fraud_detection_pipeline.pkl` is included in the deployed repository, or set `MODEL_PATH` to the deployed artifact path.
+   - Copy the public service URL and verify `https://YOUR-API-URL/health` returns `{"status":"ok"}`.
+2. **Streamlit Community Cloud**: deploy `ui/app.py` from this repository.
+   - In the app's settings, add this secret:
+
+     ```toml
+     API_URL = "https://YOUR-API-URL"
+     ```
+
+   - The app uses that URL for `/health`, `/metadata`, and `/predict`.
+
+Do not set `API_URL` to `localhost` or `127.0.0.1` in the hosted Streamlit app. Those addresses refer to the Streamlit container itself, not to the separately deployed API. For local development, keep using `http://127.0.0.1:8000` and run both processes.
+
 ## Monitoring
 
 ### Enable richer drift monitoring

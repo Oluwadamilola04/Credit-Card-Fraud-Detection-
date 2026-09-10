@@ -9,7 +9,18 @@ import requests
 import streamlit as st
 
 
-DEFAULT_API_URL = os.getenv("API_URL", "http://127.0.0.1:8000")
+def _default_api_url() -> str:
+    try:
+        configured_url = st.secrets.get("API_URL")
+    except Exception:
+        configured_url = None
+
+    return str(
+        configured_url or os.getenv("API_URL", "http://127.0.0.1:8000")
+    ).rstrip("/")
+
+
+DEFAULT_API_URL = _default_api_url()
 SAMPLE_TRANSACTION = {
     "Time": 0.0,
     "V1": -1.0,
