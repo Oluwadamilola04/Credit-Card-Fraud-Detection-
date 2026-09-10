@@ -1,8 +1,8 @@
-# Fraud Detection Demo
+# Credit Card Fraud Detection Demo
 
 This project is a practical machine-learning application that shows how a fraud model can move from a Jupyter notebook to a real, testable service.
 
-For a recruiter, hiring manager, or non-technical reviewer, the simplest way to understand it is this:
+The simplest way to understand it is this:
 
 - it analyzes transaction data,
 - tries to estimate how likely a payment is to be fraudulent,
@@ -10,7 +10,10 @@ For a recruiter, hiring manager, or non-technical reviewer, the simplest way to 
 - lets a user test it in a simple dashboard,
 - and keeps logs so performance can be monitored over time.
 
-This is a strong example of end-to-end ML work: data preparation, model training, deployment, monitoring, and explainability.
+This project showcases an end-to-end ML work: data preparation, model training, deployment, monitoring, and explainability. [Click here to view and test the interface](https://6sfvjjmydsuz4metcgt6an.streamlit.app/).
+
+<img width="1304" height="692" alt="image" src="https://github.com/user-attachments/assets/0a9ce5f5-c7da-4edb-962f-f0bb0586d4fa" />
+
 
 ## Problem statement
 
@@ -20,7 +23,7 @@ Online payment fraud is difficult to catch consistently because fraudulent trans
 
 This project trains a classification model on historical transaction patterns and returns a fraud probability for each new transaction. A configurable threshold turns that probability into a review signal, while the FastAPI service, Streamlit dashboard, prediction logs, drift checks, and feature-importance report demonstrate how the model can be used and monitored as part of a broader workflow.
 
-## Why this project matters
+## Why it matters
 
 Fraud detection is a classic business problem because the cost of mistakes is high:
 
@@ -112,57 +115,6 @@ This project uses:
 - `monitoring/drift.py` — drift detection logic
 - `scripts/` — export and explainability helpers
 
-## Quick start
-
-### 1) Create and activate an environment
-
-```bash
-python -m venv .venv
-source .venv/bin/activate
-```
-
-On Windows PowerShell:
-
-```powershell
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-```
-
-### 2) Install dependencies
-
-```bash
-pip install -r requirements.txt
-```
-
-### 3) Train the model
-
-Open and run `fraud.ipynb` to generate the saved model artifact.
-
-Typical outputs include:
-
-- `fraud_detection_pipeline.pkl`
-- `best_fraud_model.pkl`
-
-### 4) Start the API
-
-```bash
-uvicorn api.main:app --host 127.0.0.1 --port 8000 --reload
-```
-
-Check the health endpoint:
-
-```bash
-curl http://127.0.0.1:8000/health
-```
-
-### 5) Run the Streamlit app
-
-```bash
-$env:API_URL="http://127.0.0.1:8000"
-streamlit run ui/app.py
-```
-
-Then open the local URL shown in the terminal, usually http://localhost:8501.
 
 ## Example API behavior
 
@@ -206,13 +158,13 @@ The project produces more than a trained model. It includes:
 - a baseline and drift report for monitoring,
 - a feature-importance export for model inspection.
 
-The default API threshold is `0.5`, while the notebook explored a threshold near `0.9742` for the best F1 trade-off. These values are starting points for review workflows, not universal production settings.
+The default API threshold is `0.5`, while the notebook explored a threshold near `0.9742` for the best F1 trade-off. These values are starting points for review workflows, not universal production settings. 
 
 ## Current limitations
 
 This is a strong prototype, but it is not yet a production-grade fraud system.
 
-In a real deployment you would still want to add:
+In a real deployment i would still want to add:
 
 - authentication and authorization,
 - input validation and rate limiting,
@@ -220,13 +172,3 @@ In a real deployment you would still want to add:
 - retraining pipelines,
 - database-backed storage,
 - stronger governance and model review processes.
-
-## Possible next steps
-
-Potential extensions include:
-
-- pin the model training environment to avoid version drift,
-- fill the model card with final metrics and deployment notes,
-- add a cloud or Docker deployment path,
-- add richer analytics for false positives and review thresholds,
-- add a project screenshot or demo GIF for GitHub presentation.
